@@ -2,7 +2,7 @@
 
 {% load static i18n %}
 
-{% block title %}Server Error - 500{% endblock title %}
+{% block title %}Bad Request - 400{% endblock title %}
 
 {% block body_attribute %}
 class="authentication-bg"
@@ -30,10 +30,10 @@ class="authentication-bg"
                                             </a>
                                         </div>
 
-                                        <img src="{% static '/images/500.png' %}" alt="500 Error" height="250" class="mt-5 mb-3" style="font-family : JetBrains Mono; size : 25px;" />
+                                        <img src="{% static '/images/400.png' %}" alt="auth" height="250" class="mt-5 mb-3" />
 
-                                        <h2 class="fs-22 lh-base">Internal Server Error</h2>
-                                        <p class="text-muted mt-1 mb-4">The server encountered an error and was unable to complete your request. <br /> Please try again later.</p>
+                                        <h2 class="fs-22 lh-base">Bad Request</h2>
+                                        <p class="text-muted mt-1 mb-4">The server could not understand your request. <br /> Please check your syntax or contact support.</p>
 
                                         <div class="text-center">
                                             <a href="/" class="btn btn-danger">Back to Home</a>
