@@ -1,0 +1,15 @@
+python-slugify
+Pillow
+argon2-cffi
+whitenoise
+redis
+
+# Django
+# ------------------------------------------------------------------------------
+django
+django-environ
+django-model-utils
+django-allauth[mfa]
+django-crispy-forms
+crispy-bootstrap5
+django-redis

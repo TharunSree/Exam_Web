@@ -1,0 +1,144 @@
+{% extends "vertical.html" %}
+
+
+{% load static i18n %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block page_title %}
+    {% include 'partials/page-title.html' with title='Dashboard' subtitle='Welcome,'|add:user.username %}
+{% endblock page_title %}
+
+{% block page_content %}
+
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h4 class="fw-bold mb-1">Welcome back, {{ user.username }}!</h4>
+                            <p class="text-muted mb-0">Ready to start your next challenge?</p>
+                        </div>
+                        <div>
+                            <a href="#new-quiz-section" class="btn btn-primary">Start New Quiz</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center border-0">
+                    <h4 class="card-title mb-0">Your Quizzes</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom gap-2 pb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-md bg-light bg-opacity-50 rounded">
+                                <iconify-icon icon="solar:calendar-date-broken"
+                                              class="fs-32 text-primary avatar-title"></iconify-icon>
+                            </div>
+                            <div>
+                                <h5 class="fw-medium mb-1 fs-16">Daily Quiz - July 15, 2025</h5>
+                                <p class="mb-0 text-muted">10 Questions - Medium Difficulty</p>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="#!" class="btn btn-success">Start Now</a>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center justify-content-between pt-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-md bg-light bg-opacity-50 rounded">
+                                <iconify-icon icon="solar:graph-new-broken"
+                                              class="fs-32 text-warning avatar-title"></iconify-icon>
+                            </div>
+                            <div>
+                                <h5 class="fw-medium mb-1 fs-16">Weekend Challenge</h5>
+                                <p class="mb-0 text-muted">25 Questions - Mixed Difficulty</p>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="#!" class="btn btn-info">View Results</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Weekly Report</h4>
+                    <p class="text-muted">Your performance summary for the last week.</p>
+                    <div id="weekly-donut-chart" data-colors="#604ae3,#ff7f5b" class="apex-charts mt-3"></div>
+                    <a href="{% url 'weekly_report' %}" class="btn btn-outline-primary w-100 mt-2">View Detailed
+                        Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="new-quiz-section">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title anchor">Generate a New Quiz</h4>
+                    <p class="text-muted">Select an examination to generate a new quiz. You can also upload your own
+                        study materials for a more personalized experience. </p>
+
+                    <form method="POST" action="{% url 'generate_quiz' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="exam-selection" class="form-label">Select Examination</label>
+                                <select class="form-select" id="exam-selection" name="exam">
+                                    <option selected disabled>Choose a subject...</option>
+                                    {% for exam in exams %}
+                                        <option value="{{ exam.id }}">{{ exam.name }} - {{ exam.subject }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="num-questions" class="form-label">Number of Questions</label>
+                                <input type="number" class="form-control" id="num-questions" name="num_questions"
+                                       value="10">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="formFile" class="form-label">Upload Study Material (Optional .txt file)</label>
+                            <input class="form-control" type="file" id="formFile" name="study_material">
+                        </div>
+                        <button type="submit" class="btn btn-danger">Generate Quiz</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock page_content %}
+
+{% block extra_javascript %}
+    <script src="{% static '/vendor/apexcharts/apexcharts.min.js' %}"></script>
+    <script>
+        // A simple placeholder for the weekly report chart
+        var options = {
+            chart: {
+                type: 'donut',
+                height: 250,
+            },
+            series: [72, 28], // Example: 72% Correct, 28% Incorrect
+            labels: ['Correct', 'Incorrect'],
+            colors: ["#604ae3", "#ff7f5b"],
+            legend: {
+                position: 'bottom'
+            }
+        };
+        var chart = new ApexCharts(document.querySelector("#weekly-donut-chart"), options);
+        chart.render();
+    </script>
+{% endblock extra_javascript %}

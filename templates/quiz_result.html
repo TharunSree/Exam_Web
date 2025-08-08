@@ -1,0 +1,34 @@
+{% extends "vertical.html" %}
+
+{% load static i18n %}
+
+{% block title %}Quiz Result{% endblock title %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title='Quiz Result' subtitle=result.quiz.title %}
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 class="fw-bold text-uppercase fs-18">Quiz Complete!</h2>
+                <p class="text-muted">You have completed the quiz.</p>
+
+                <div class="my-4">
+                    <div class="avatar-lg bg-success bg-opacity-10 rounded-circle mx-auto">
+                        <iconify-icon icon="solar:medal-star-bold-duotone" class="fs-48 text-success avatar-title"></iconify-icon>
+                    </div>
+                </div>
+
+                <h3 class="text-dark fw-bold mb-1">Your Score: {{ result.score|floatformat:2 }} Marks</h3>
+
+                <p class="text-muted">You answered {{ result.quiz.questions.count }} questions.</p>
+
+                <a href="{% url 'dashboard' %}" class="btn btn-danger mt-3">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}

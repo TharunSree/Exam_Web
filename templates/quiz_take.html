@@ -1,0 +1,157 @@
+{% extends "vertical.html" %}
+{% load static i18n %}
+
+{% block title %}Take Quiz - {{ quiz.title }}{% endblock title %}
+
+{% block page_title %}
+    {% include 'partials/page-title.html' with title=quiz.title subtitle='Please read the instructions carefully.' %}
+{% endblock page_title %}
+
+{% block page_content %}
+    <div id="quiz-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); z-index: 1050; display: flex; align-items: center; justify-content: center;">
+        <div class="text-center">
+            <h2>Quiz Instructions</h2>
+            <p class="lead">This quiz will be conducted in full-screen mode.</p>
+            <p>The timer will start as soon as you click the button.</p>
+            <p><strong>Warning:</strong> Exiting full-screen or switching tabs will automatically submit the quiz.</p>
+            <button id="start-quiz-btn" class="btn btn-danger btn-lg">Start Quiz</button>
+        </div>
+    </div>
+
+    <div id="quiz-content" style="display: none;">
+        <div id="timer-bar" style="position: sticky; top: 0; z-index: 1030; background-color: #f8f9fa; padding: 10px; border-bottom: 1px solid #dee2e6;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Time Remaining</h5>
+                <h5 id="timer" class="mb-0 fw-bold text-danger">00:00</h5>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        {% with first_question=quiz.questions.first %}
+                            {% if first_question.passage %}
+                                <div class="mb-4 p-3 bg-light rounded border"><h4 class="card-title">Reading Passage</h4><div style="white-space: pre-wrap;">{{ first_question.passage|safe }}</div></div><hr>
+                            {% endif %}
+                            {% if first_question.chart_data %}
+                                <div class="mb-4 p-3 bg-light rounded border"><h4 class="card-title">Data Interpretation Chart</h4><div id="quiz-chart"></div></div><hr>
+                            {% endif %}
+                        {% endwith %}
+
+                        <form id="quiz-form" method="post" action="{% url 'take_quiz' quiz.id %}">
+                            {% csrf_token %}
+                            {% for question in quiz.questions.all %}
+                                <div class="mb-4">
+                                    <h5 class="mb-3" style="white-space: pre-wrap;">{{ forloop.counter }}. {{ question.question_text|safe }}</h5>
+                                    <div class="form-check mb-2"><input class="form-check-input" type="radio" name="question_{{ question.id }}" id="q{{ question.id }}_opt1" value="option1"><label class="form-check-label" for="q{{ question.id }}_opt1">{{ question.option1|safe }}</label></div>
+                                    <div class="form-check mb-2"><input class="form-check-input" type="radio" name="question_{{ question.id }}" id="q{{ question.id }}_opt2" value="option2"><label class="form-check-label" for="q{{ question.id }}_opt2">{{ question.option2|safe }}</label></div>
+                                    <div class="form-check mb-2"><input class="form-check-input" type="radio" name="question_{{ question.id }}" id="q{{ question.id }}_opt3" value="option3"><label class="form-check-label" for="q{{ question.id }}_opt3">{{ question.option3|safe }}</label></div>
+                                    <div class="form-check mb-2"><input class="form-check-input" type="radio" name="question_{{ question.id }}" id="q{{ question.id }}_opt4" value="option4"><label class="form-check-label" for="q{{ question.id }}_opt4">{{ question.option4|safe }}</label></div>
+                                </div>
+                                <hr>
+                            {% endfor %}
+                            <div class="text-center"><button type="submit" class="btn btn-danger">Submit Quiz</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock page_content %}
+
+{% block extra_javascript %}
+    {% with first_question=quiz.questions.first %}{% if first_question.chart_data %}
+        <script src="{% static '/vendor/apexcharts/apexcharts.min.js' %}"></script>
+        {{ first_question.chart_data|json_script:"chart-options" }}
+    {% endif %}{% endwith %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const startBtn = document.getElementById('start-quiz-btn');
+            const quizOverlay = document.getElementById('quiz-overlay');
+            const quizContent = document.getElementById('quiz-content');
+            const quizForm = document.getElementById('quiz-form');
+            const timerDisplay = document.getElementById('timer');
+            const docElement = document.documentElement;
+            let quizSubmitted = false;
+            let timerInterval;
+
+            // --- UNSELECT RADIO BUTTON LOGIC ---
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.addEventListener('click', function() {
+                    if (this.dataset.previousValue === 'true') {
+                        this.checked = false;
+                        this.dataset.previousValue = 'false';
+                    } else {
+                        document.querySelectorAll(`input[name="${this.name}"]`).forEach(r => r.dataset.previousValue = 'false');
+                        this.dataset.previousValue = 'true';
+                    }
+                });
+            });
+
+            // --- TIMER LOGIC ---
+            const timePerQuestion = 90; // 90 seconds per question
+            const totalQuestions = {{ quiz.questions.count }};
+            let timeRemaining = totalQuestions * timePerQuestion;
+
+            function updateTimer() {
+                const minutes = Math.floor(timeRemaining / 60);
+                let seconds = timeRemaining % 60;
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+                timerDisplay.textContent = `${minutes}:${seconds}`;
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                } else {
+                    submitQuiz("Time's up!");
+                }
+            }
+
+            // --- FULLSCREEN & SUBMIT LOGIC ---
+            function submitQuiz(reason = "Quiz submitted.") {
+                if (!quizSubmitted) {
+                    quizSubmitted = true;
+                    clearInterval(timerInterval);
+                    alert(reason);
+                    quizForm.submit();
+                }
+            }
+
+            function requestFullScreen() {
+                if (docElement.requestFullscreen) docElement.requestFullscreen();
+                else if (docElement.mozRequestFullScreen) docElement.mozRequestFullScreen();
+                else if (docElement.webkitRequestFullscreen) docElement.webkitRequestFullscreen();
+                else if (docElement.msRequestFullscreen) docElement.msRequestFullscreen();
+            }
+
+            // --- EVENT LISTENERS ---
+            startBtn.addEventListener('click', function() {
+                quizOverlay.style.display = 'none';
+                quizContent.style.display = 'block';
+                requestFullScreen();
+                timerInterval = setInterval(updateTimer, 1000);
+
+                {% if quiz.questions.first.chart_data %}
+                try {
+                    const chartOptionsJson = document.getElementById('chart-options').textContent;
+                    const options = JSON.parse(chartOptionsJson);
+                    var chart = new ApexCharts(document.querySelector("#quiz-chart"), options);
+                    chart.render();
+                } catch (e) { console.error("Error rendering chart:", e); }
+                {% endif %}
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement && !quizSubmitted) {
+                    submitQuiz('You exited full-screen mode. The quiz has been submitted.');
+                }
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden' && !quizSubmitted) {
+                    submitQuiz('You switched tabs. The quiz has been submitted.');
+                }
+            });
+        });
+    </script>
+{% endblock extra_javascript %}

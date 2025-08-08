@@ -1,0 +1,22 @@
+# Core Django Framework
+Django
+
+# Production Application Server
+gunicorn
+
+# PostgreSQL Database Adapter
+psycopg2-binary
+
+# Google Gemini API
+google-generativeai
+
+# Environment Variable Management
+python-dotenv
+dj-database-url
+
+# Form Styling (Optional but used in templates)
+django-crispy-forms
+crispy-bootstrap5
+
+# For AWS S3 integration (Recommended for production)
+django-storages[boto3]

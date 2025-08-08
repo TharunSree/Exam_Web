@@ -1,0 +1,68 @@
+{% load static i18n %}
+
+<div class="main-nav">
+     <div class="logo-box">
+          <a href="/" class="logo-dark">
+               <img src="{% static '/images/logo-sm.png' %}" class="logo-sm" alt="logo sm">
+               <img src="{% static '/images/logo-dark.png' %}" class="logo-lg" alt="logo dark">
+          </a>
+
+          <a href="/" class="logo-light">
+               <img src="{% static '/images/logo-sm.png' %}" class="logo-sm" alt="logo sm">
+               <img src="{% static '/images/logo-light.png' %}" class="logo-lg" alt="logo light">
+          </a>
+     </div>
+
+     <button type="button" class="button-sm-hover" aria-label="Show Full Sidebar">
+          <i class="ri-menu-2-line fs-24 button-sm-hover-icon"></i>
+     </button>
+
+     <div class="scrollbar" data-simplebar>
+          <ul class="navbar-nav" id="navbar-nav">
+               <li class="menu-title">Menu</li>
+               <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">
+                         <span class="nav-icon">
+                              <i class="ri-dashboard-2-line"></i>
+                         </span>
+                         <span class="nav-text"> Dashboard </span>
+                    </a>
+               </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#new-quiz-section">
+                         <span class="nav-icon">
+                              <i class="ri-add-circle-line"></i>
+                         </span>
+                         <span class="nav-text"> New Quiz </span>
+                    </a>
+               </li>
+               <li class="nav-item">
+                    <a class="nav-link" href="{% url 'quiz_history' %}">
+                         <span class="nav-icon">
+                              <i class="ri-history-line"></i>
+                         </span>
+                         <span class="nav-text"> Quiz History </span>
+                    </a>
+               </li>
+
+                <li class="menu-title">Settings</li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                         <span class="nav-icon">
+                              <i class="ri-settings-3-line"></i>
+                         </span>
+                         <span class="nav-text"> Settings </span>
+                    </a>
+               </li>
+                 <li class="nav-item">
+                    <a class="nav-link" href="#">
+                         <span class="nav-icon">
+                              <i class="ri-account-circle-line"></i>
+                         </span>
+                         <span class="nav-text"> Profile </span>
+                    </a>
+               </li>
+          </ul>
+     </div>
+</div>

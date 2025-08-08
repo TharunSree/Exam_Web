@@ -1,0 +1,51 @@
+{% extends "vertical.html" %}
+
+{% load static i18n %}
+
+{% block title %}Quiz Review{% endblock title %}
+
+{% block page_title %}
+{% include 'partials/page-title.html' with title='Reviewing Quiz' subtitle=result.quiz.title %}
+{% endblock page_title %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Your Score: {{ result.score|floatformat:2 }} Marks</h4>
+
+                {% for answer in result.user_answers.all %}
+                <div class="mb-4 p-3 rounded {% if answer.is_correct %}bg-success-subtle{% else %}bg-danger-subtle{% endif %}">
+                    <h5 class="mb-3">{{ forloop.counter }}. {{ answer.question.question_text|safe }}</h5>
+                    
+                    <p class="mb-1"><strong>Your Answer:</strong> 
+                        <span class="{% if not answer.is_correct %}text-danger{% endif %}">
+                            {% if answer.selected_option == 'option1' %}{{ answer.question.option1 }}{% endif %}
+                            {% if answer.selected_option == 'option2' %}{{ answer.question.option2 }}{% endif %}
+                            {% if answer.selected_option == 'option3' %}{{ answer.question.option3 }}{% endif %}
+                            {% if answer.selected_option == 'option4' %}{{ answer.question.option4 }}{% endif %}
+                        </span>
+                    </p>
+
+                    {% if not answer.is_correct %}
+                    <p class="mb-1"><strong>Correct Answer:</strong> 
+                        <span class="text-success">
+                            {% if answer.question.correct_option == 'option1' %}{{ answer.question.option1 }}{% endif %}
+                            {% if answer.question.correct_option == 'option2' %}{{ answer.question.option2 }}{% endif %}
+                            {% if answer.question.correct_option == 'option3' %}{{ answer.question.option3 }}{% endif %}
+                            {% if answer.question.correct_option == 'option4' %}{{ answer.question.option4 }}{% endif %}
+                        </span>
+                    </p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}
