@@ -128,5 +128,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GEMINI_API_KEY = 'AIzaSyDEin6cEbyuQMUi11si3qRqlhdQuy2JdFY'
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@selfexam.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True  # Use Transport Layer Security
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER') # Your full Gmail address
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') # The 16-digit App Password
+
+# The email address you want to appear as the sender
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+LOGIN_URL = '/login/'
