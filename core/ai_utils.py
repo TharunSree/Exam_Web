@@ -52,7 +52,7 @@ def generate_quiz_questions(exam_name, subject, description, num_questions, diff
 
         "3.  **`questions` (array of objects):**",
         "    * This MUST be a list of question objects.",
-        "    * Each object MUST contain these exact keys: `question_text`, `option1`, `option2`, `option3`, `option4`, `correct_option`.",
+        "    * Each object MUST contain these exact keys: `question_text`, `option1`, `option2`, `option3`, `option4`, `correct_option` (correct option should be like option1, option2 or whatever the correct option is).",
 
         "**Content-Specific Instructions**:",
         "* **For Para-Jumble Questions (VARC):** The `question_text` MUST contain the instruction and all sentences separated by a newline character (`\\n`). The `options` must be the sequence arrangements (e.g., 'CABD').",
