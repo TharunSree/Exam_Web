@@ -33,11 +33,12 @@ def generate_quiz_view(request):
     Generates a new quiz, handling adaptive difficulty and structured JSON from the AI.
     """
     if request.method == 'POST':
+        custom_material_text = None
         try:
             exam_id = request.POST.get('exam')
             num_questions = int(request.POST.get('num_questions', 10))
             exam = get_object_or_404(Exam, id=exam_id)
-            custom_material_text = None
+            
             if 'study_material' in request.FILES:
                 uploaded_file = request.FILES['study_material']
                 # For simplicity, we'll read it as text. Ensure it's not too large.
