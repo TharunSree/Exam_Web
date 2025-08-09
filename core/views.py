@@ -14,15 +14,34 @@ from .ai_utils import generate_quiz_questions
 @login_required
 def dashboard_view(request):
     """
-    Renders the main dashboard, fetching exams and recent quiz results.
+    Renders the main dashboard, fetching exams, recent results, and today's challenges.
     """
     exams = Exam.objects.all().order_by('name', 'subject')
     recent_results = Result.objects.filter(user=request.user).order_by('-completed_at')[:5]
 
+    # --- New Logic: Fetch today's automated quizzes that haven't been completed ---
+    today = timezone.now().date()
+    
+    # Get the IDs of quizzes the user has already completed today
+    completed_today_quiz_ids = Result.objects.filter(
+        user=request.user, 
+        completed_at__date=today
+    ).values_list('quiz_id', flat=True)
+
+    # Fetch quizzes created today that are NOT in the completed list
+    todays_challenges = Quiz.objects.filter(
+        user=request.user,
+        created_at__date=today,
+        title__iregex=r'^(Daily Challenge|Weekend Challenge)'
+    ).exclude(
+        id__in=completed_today_quiz_ids
+    ).order_by('title')
+    
     context = {
         'user': request.user,
         'exams': exams,
         'recent_results': recent_results,
+        'todays_challenges': todays_challenges, # Add to context
     }
     return render(request, 'dashboard.html', context)
 
