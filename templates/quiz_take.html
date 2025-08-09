@@ -11,7 +11,7 @@
     <div id="quiz-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); z-index: 1050; display: flex; align-items: center; justify-content: center;">
         <div class="text-center">
             <h2>Quiz Instructions</h2>
-            <p class="lead">This quiz will be conducted in full-screen mode.</p>
+            <p class="lead">This quiz will be conducted in a distraction-free full-screen mode.</p>
             <p>The timer will start as soon as you click the button.</p>
             <p><strong>Warning:</strong> Exiting full-screen or switching tabs will automatically submit the quiz.</p>
             <button id="start-quiz-btn" class="btn btn-danger btn-lg">Start Quiz</button>
@@ -68,12 +68,16 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // --- Element Selectors ---
             const startBtn = document.getElementById('start-quiz-btn');
             const quizOverlay = document.getElementById('quiz-overlay');
             const quizContent = document.getElementById('quiz-content');
             const quizForm = document.getElementById('quiz-form');
             const timerDisplay = document.getElementById('timer');
             const docElement = document.documentElement;
+            const sidebar = document.querySelector('.main-nav');
+            const topbar = document.querySelector('.topbar');
+            const mainContent = document.querySelector('.main-content');
             let quizSubmitted = false;
             let timerInterval;
 
@@ -94,7 +98,6 @@
             const timePerQuestion = 90; // 90 seconds per question
             const totalQuestions = {{ quiz.questions.count }};
             let timeRemaining = totalQuestions * timePerQuestion;
-
             function updateTimer() {
                 const minutes = Math.floor(timeRemaining / 60);
                 let seconds = timeRemaining % 60;
@@ -126,11 +129,19 @@
 
             // --- EVENT LISTENERS ---
             startBtn.addEventListener('click', function() {
+                // HIDE NAV ELEMENTS
+                if (sidebar) sidebar.style.display = 'none';
+                if (topbar) topbar.style.display = 'none';
+                if (mainContent) {
+                    mainContent.style.marginLeft = '0';
+                    mainContent.style.padding = '0';
+                }
+
                 quizOverlay.style.display = 'none';
                 quizContent.style.display = 'block';
                 requestFullScreen();
                 timerInterval = setInterval(updateTimer, 1000);
-
+                
                 {% if quiz.questions.first.chart_data %}
                 try {
                     const chartOptionsJson = document.getElementById('chart-options').textContent;
@@ -146,7 +157,7 @@
                     submitQuiz('You exited full-screen mode. The quiz has been submitted.');
                 }
             });
-
+            
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'hidden' && !quizSubmitted) {
                     submitQuiz('You switched tabs. The quiz has been submitted.');
