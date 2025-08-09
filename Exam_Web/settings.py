@@ -132,10 +132,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True  # Use Transport Layer Security
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER') # Your full Gmail address
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') # The 16-digit App Password
+EMAIL_HOST_USER = 'tharunreshmik@gmail.com'
+EMAIL_HOST_PASSWORD = 'khmh diwd xonz jjbc'
 
 # The email address you want to appear as the sender
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL = 'tharunreshmik@gmail.com'
 
 LOGIN_URL = '/login/'
