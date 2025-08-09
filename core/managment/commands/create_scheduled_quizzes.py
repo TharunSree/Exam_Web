@@ -7,9 +7,8 @@ from core.ai_utils import generate_quiz_questions
 
 User = get_user_model()
 
-
 class Command(BaseCommand):
-    help = 'Creates scheduled daily and weekend quizzes for active users.'
+    help = 'Creates scheduled daily and weekend quizzes for active users for each subject they have taken.'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -26,65 +25,67 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(f"Starting to generate {quiz_type} quizzes...")
-
+        
         num_questions = 10 if quiz_type == 'daily' else 25
         quiz_title_prefix = "Daily Challenge" if quiz_type == 'daily' else "Weekend Challenge"
 
-        # Get all non-staff users
         users = User.objects.filter(is_staff=False)
-
+        
         for user in users:
-            # Find the last exam the user took to generate a relevant new quiz
-            last_result = Result.objects.filter(user=user).order_by('-completed_at').first()
-
-            if last_result:
-                exam_to_use = last_result.quiz.exam
-            else:
-                # If the user has no history, pick a random exam
-                exam_to_use = Exam.objects.order_by('?').first()
-
-            if not exam_to_use:
-                self.stdout.write(
-                    self.style.WARNING(f"No exams in the database. Cannot create quiz for {user.username}."))
+            # --- New Logic: Find all unique exams the user has ever taken ---
+            past_exam_ids = Result.objects.filter(user=user).values_list('quiz__exam_id', flat=True).distinct()
+            
+            if not past_exam_ids:
+                self.stdout.write(self.style.WARNING(f"User {user.username} has no quiz history. Skipping."))
                 continue
 
-            self.stdout.write(f"Generating {quiz_type} quiz for {user.username} on {exam_to_use.subject}...")
+            exams_to_generate = Exam.objects.filter(id__in=past_exam_ids)
+            self.stdout.write(f"Found {exams_to_generate.count()} unique subjects for {user.username}.")
 
-            # Call our existing AI function
-            ai_data = generate_quiz_questions(
-                exam_name=exam_to_use.name,
-                subject=exam_to_use.subject,
-                description=exam_to_use.description,
-                num_questions=num_questions,
-                difficulty="Medium"  # Scheduled quizzes can have a default difficulty
-            )
+            # --- Loop through each subject and create a quiz ---
+            for exam in exams_to_generate:
+                self.stdout.write(f"Generating {quiz_type} quiz for {user.username} on {exam.subject}...")
 
-            if ai_data and 'questions' in ai_data and ai_data['questions']:
-                quiz = Quiz.objects.create(
-                    user=user,
-                    exam=exam_to_use,
-                    title=f"{quiz_title_prefix}: {exam_to_use.subject}",
-                    number_of_questions=len(ai_data['questions']),
+                # Prevent creating a duplicate daily/weekend quiz if one already exists for today
+                today = timezone.now().date()
+                if Quiz.objects.filter(user=user, exam=exam, title__startswith=quiz_title_prefix, created_at__date=today).exists():
+                    self.stdout.write(self.style.WARNING(f"A {quiz_type} quiz for {exam.subject} already exists today for {user.username}. Skipping."))
+                    continue
+
+                ai_data = generate_quiz_questions(
+                    exam_name=exam.name,
+                    subject=exam.subject,
+                    description=exam.description,
+                    num_questions=num_questions,
                     difficulty="Medium"
                 )
 
-                passage_text = ai_data.get('passage')
-                chart_data_json = ai_data.get('chart_data')
-
-                for q_data in ai_data['questions']:
-                    Question.objects.create(
-                        quiz=quiz,
-                        passage=passage_text,
-                        chart_data=chart_data_json,
-                        question_text=q_data.get('question_text', ''),
-                        option1=q_data.get('option1', ''),
-                        option2=q_data.get('option2', ''),
-                        option3=q_data.get('option3', ''),
-                        option4=q_data.get('option4', ''),
-                        correct_option=q_data.get('correct_option', '')
+                if ai_data and 'questions' in ai_data and ai_data['questions']:
+                    quiz = Quiz.objects.create(
+                        user=user,
+                        exam=exam,
+                        title=f"{quiz_title_prefix}: {exam.subject}",
+                        number_of_questions=len(ai_data['questions']),
+                        difficulty="Medium"
                     )
-                self.stdout.write(self.style.SUCCESS(f"Successfully created quiz for {user.username}."))
-            else:
-                self.stdout.write(self.style.ERROR(f"Failed to generate quiz from AI for {user.username}."))
+
+                    passage_text = ai_data.get('passage')
+                    chart_data_json = ai_data.get('chart_data')
+
+                    for q_data in ai_data['questions']:
+                        Question.objects.create(
+                            quiz=quiz,
+                            passage=passage_text,
+                            chart_data=chart_data_json,
+                            question_text=q_data.get('question_text', ''),
+                            option1=q_data.get('option1', ''),
+                            option2=q_data.get('option2', ''),
+                            option3=q_data.get('option3', ''),
+                            option4=q_data.get('option4', ''),
+                            correct_option=q_data.get('correct_option', '')
+                        )
+                    self.stdout.write(self.style.SUCCESS(f"Successfully created quiz for {user.username}."))
+                else:
+                    self.stdout.write(self.style.ERROR(f"Failed to generate quiz from AI for {user.username}."))
 
         self.stdout.write(self.style.SUCCESS("Finished generating all scheduled quizzes."))
